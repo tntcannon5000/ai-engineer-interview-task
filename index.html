@@ -95,6 +95,7 @@
     .results-hint { font-size:11px; color:var(--muted); margin:15px 2px 0; }
     .message { padding:11px 13px; border-radius:7px; margin-top:12px; font-size:13px; overflow-wrap:anywhere; }
     .error { color:var(--error); background:#fff2f1; border:1px solid #f2d5d0; }
+    .warning { color:#805500; background:#fff8e6; border:1px solid #edd49b; }
     .success { color:var(--accent-ink); background:var(--accent-soft); border:1px solid #d8d0ff; }
     dialog { color:var(--ink); background:var(--surface); border:1px solid var(--line); }
     dialog::backdrop { background:#28232f66; }
@@ -293,7 +294,7 @@
           <button class="btn" id="open-granola" type="button" aria-expanded="false" aria-controls="granola-panel"><img class="brand-icon" src="https://www.granola.ai/favicon/favicon.svg" alt=""> Granola</button>
           <fieldset id="note-fields"><div class="drop-zone" id="note-drop">Drop a document or a Granola transcript here.
           <input id="note-file" type="file" accept=".txt,.md,.pdf,.docx" aria-label="Upload note document">
-          <p class="hint" id="note-upload-status" role="status">TXT, Markdown, PDF or DOCX · up to 10 MB.</p></div><p id="meeting-source" class="hint" hidden></p><button id="clear-meeting" class="text-btn" type="button" hidden>Remove transcript</button><div class="field"><label for="new-note">Details</label><textarea id="new-note" rows="4" required placeholder="Add information from your conversation with this candidate…"></textarea></div><label id="note-date-label" for="new-note-date">Recorded at <span class="muted">(optional, local time)</span></label><input id="new-note-date" type="datetime-local" step="1"><p id="note-date-hint" class="hint">Leave blank to use the current time.</p></fieldset>
+          <p class="hint" id="note-upload-status" role="status">TXT, Markdown, PDF or DOCX · up to 10 MB.</p></div><p id="meeting-source" class="hint" hidden></p><button id="clear-meeting" class="text-btn" type="button" hidden>Remove transcript</button><div class="field"><label for="new-note">Details</label><textarea id="new-note" rows="4" required placeholder="Add information from your conversation with this candidate…"></textarea><p id="transcript-name-warning" class="message warning" role="status" hidden></p></div><label id="note-date-label" for="new-note-date">Recorded at <span class="muted">(optional, local time)</span></label><input id="new-note-date" type="datetime-local" step="1"><p id="note-date-hint" class="hint">Leave blank to use the current time.</p></fieldset>
           <div id="note-error" class="message error" role="alert" hidden></div><div id="note-success" class="message success" role="status" hidden></div>
           <button id="note-submit" class="btn primary" type="submit">Save information</button>
         </form><aside id="granola-panel" hidden aria-labelledby="granola-title"><div class="section-heading"><h3 id="granola-title">Recent transcripts</h3><button id="close-granola" class="icon-btn" type="button" aria-label="Close recent transcripts">×</button></div><p class="hint">Drag a transcript into the document area, or select it to review.</p><div id="meeting-list"></div></aside></div>
@@ -565,8 +566,15 @@
       catch(error) { message('note-error',error.message); message('note-upload-status'); }
       finally { state.noteBusy=false; $('note-fields').disabled=false; $('note-submit').disabled=false; $('detail-close').disabled=false; }
     });
+    function updateTranscriptWarning() {
+      const name=state.candidate?.name || '';
+      const normalise=value=>value.normalize('NFKC').toLocaleLowerCase().replace(/\s+/g,' ').trim();
+      const missing=selectedMeeting && name && !normalise($('new-note').value).includes(normalise(name));
+      message('transcript-name-warning',missing?`"${name}" is not found in the transcript`:'');
+    }
+    $('new-note').addEventListener('input',updateTranscriptWarning);
     function clearMeeting() {
-      selectedMeeting=null; message('meeting-source'); $('clear-meeting').hidden=true; $('new-note-date').disabled=false; for(const id of ['new-note-date','note-date-label','note-date-hint']) $(id).hidden=false;
+      selectedMeeting=null; message('transcript-name-warning'); message('meeting-source'); $('clear-meeting').hidden=true; $('new-note-date').disabled=false; for(const id of ['new-note-date','note-date-label','note-date-hint']) $(id).hidden=false;
     }
     function closeGranola() {
       $('granola-panel').hidden=true; $('candidate-dialog').classList.remove('integrations-open'); $('open-granola').setAttribute('aria-expanded','false');
@@ -574,7 +582,7 @@
     function selectMeeting(id) {
       if(state.noteBusy) return;
       const meeting=meetings.find(m=>m.id===id); if(!meeting) return;
-      selectedMeeting=meeting; $('new-note').value=meeting.text;
+      selectedMeeting=meeting; $('new-note').value=meeting.text; updateTranscriptWarning();
       message('meeting-source',`Granola · ${meeting.title} · ${dateText(meeting.timestamp)}`);
       $('clear-meeting').hidden=false; $('new-note-date').value=''; $('new-note-date').disabled=true; for(const id of ['new-note-date','note-date-label','note-date-hint']) $(id).hidden=true;
       message('note-success'); message('note-error'); $('new-note').focus();
