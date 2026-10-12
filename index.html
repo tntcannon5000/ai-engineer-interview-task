@@ -1,0 +1,610 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Candidate search · Popp</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;650;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%237a6aff'/%3E%3Ctext x='9' y='23' font-family='sans-serif' font-size='25' font-weight='bold' fill='white'%3Ep%3C/text%3E%3C/svg%3E">
+  <style>
+    :root { --ink:#28272c; --muted:#696671; --accent:#7a6aff; --accent-ink:#5744cb; --accent-soft:#f0edff; --line:#e5e2eb; --surface:#fff; --background:#f7f5f3; --error:#a23434; --radius:12px; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--background); color:var(--ink); font:14px/1.5 "DM Sans","Segoe UI",system-ui,-apple-system,sans-serif; }
+    button,input,textarea,select { font:inherit; }
+    button { cursor:pointer; }
+    button:disabled { cursor:wait; opacity:.6; }
+    :focus-visible { outline:3px solid #b2a8ff; outline-offset:3px; }
+    [hidden] { display:none !important; }
+    h1,h2,h3,p { margin:0; }
+    h1 { font-size:30px; font-weight:650; letter-spacing:-1px; line-height:1.25; }
+    h2 { font-size:22px; font-weight:650; letter-spacing:-.5px; }
+    h3 { font-size:15px; font-weight:650; }
+    .muted,.hint { color:var(--muted); }
+    .hint { font-size:12px; margin-top:6px; }
+    .topbar { background:var(--surface); border-bottom:1px solid var(--line); }
+    .topbar-inner { max-width:1240px; margin:auto; padding:18px 28px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
+    .brand { display:flex; align-items:center; gap:20px; }
+    .wordmark { display:flex; align-items:center; flex-shrink:0; }
+    .wordmark svg { display:block; width:90px; height:34px; }
+    .brand-label { border-left:1px solid var(--line); padding-left:20px; color:var(--muted); font-size:13px; }
+    .actions { display:flex; align-items:center; gap:10px; }
+    .btn { border:1px solid var(--line); border-radius:8px; padding:10px 15px; background:white; color:var(--ink); font-weight:600; display:inline-flex; align-items:center; justify-content:center; gap:8px; white-space:nowrap; }
+    .btn:hover:not(:disabled) { background:#f4f1ff; }
+    .btn.primary { background:var(--accent); border-color:var(--accent); color:#19132e; border-radius:999px; }
+    .btn.primary:hover:not(:disabled) { background:#9184ff; border-color:#9184ff; }
+    .text-btn { padding:3px 0; border:0; background:none; color:var(--accent-ink); font-weight:600; font-size:12px; }
+    .text-btn:hover { text-decoration:underline; }
+    .icon-btn { width:34px; height:34px; border:0; border-radius:6px; background:transparent; color:var(--muted); font-size:23px; flex-shrink:0; }
+    .icon-btn:hover { background:#f0edff; color:var(--ink); }
+    .btn.busy::before { content:""; width:13px; height:13px; border:2px solid currentColor; border-right-color:transparent; border-radius:50%; animation:spin .8s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    main { max-width:1240px; padding:32px 28px 56px; margin:auto; }
+    .intro { margin-bottom:24px; }
+    .intro p { color:var(--muted); margin-top:7px; }
+    .workspace { display:grid; grid-template-columns:258px minmax(0,1fr); gap:24px; align-items:start; }
+    .search-bar { grid-column:1/-1; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:18px 20px; }
+    label,.field-label { display:block; font-size:12px; font-weight:600; margin-bottom:6px; }
+    input,textarea,select { color:var(--ink); background:#fff; border:1px solid #d8d3e1; border-radius:7px; padding:10px 11px; width:100%; min-width:0; }
+    input::placeholder,textarea::placeholder { color:#837e8e; }
+    textarea { resize:vertical; line-height:1.55; }
+    input:focus,textarea:focus,select:focus { border-color:var(--accent-ink); }
+    .search-row { display:flex; align-items:stretch; gap:12px; }
+    .query-wrap { position:relative; flex:1; }
+    .query-wrap svg { position:absolute; left:12px; top:13px; width:19px; height:19px; color:var(--muted); pointer-events:none; }
+    #query { padding-left:39px; font-size:15px; height:46px; }
+    .search-row .btn { padding-left:22px; padding-right:22px; }
+    .filters { background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:17px 18px; }
+    .filters summary { cursor:pointer; font-weight:650; list-style:none; display:flex; align-items:center; justify-content:space-between; }
+    .filters summary::-webkit-details-marker { display:none; }
+    .filters summary::after { content:"⌄"; color:var(--muted); font-size:18px; }
+    .filters[open] summary::after { transform:rotate(180deg); }
+    .filter-content { padding-top:16px; }
+    .filter-reset { display:flex; justify-content:flex-end; margin-bottom:12px; }
+    .field { margin-bottom:15px; }
+    .field:last-child { margin-bottom:0; }
+    .two-cols { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    select[multiple] { padding:4px; font-size:12px; }
+    select[multiple] option { padding:5px 7px; }
+    select[multiple] optgroup { font-size:11px; color:var(--muted); font-weight:600; }
+    select[multiple] optgroup option { color:var(--ink); font-size:12px; font-weight:400; }
+    .results-heading { display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin:2px 0 15px; }
+    .results-heading h2 { font-size:16px; letter-spacing:0; }
+    #result-count { color:var(--muted); font-size:12px; text-align:right; }
+    .results-list { display:grid; gap:12px; }
+    .candidate-card { display:block; width:100%; text-align:left; border:1px solid var(--line); background:var(--surface); border-radius:var(--radius); padding:19px 20px; color:var(--ink); }
+    .candidate-card:hover { border-color:#b2a8ff; box-shadow:0 2px 9px #5744cb12; }
+    .card-top { display:flex; gap:13px; align-items:flex-start; }
+    .avatar { width:40px; height:40px; display:grid; place-items:center; border-radius:10px; background:#f0edff; color:var(--accent-ink); font-size:13px; font-weight:650; flex-shrink:0; }
+    .card-info { flex:1; min-width:0; }
+    .candidate-name { display:block; font-size:16px; font-weight:650; overflow-wrap:anywhere; }
+    .candidate-role { display:block; color:var(--muted); font-size:13px; margin-top:2px; }
+    .score { flex-shrink:0; text-align:right; font-size:12px; color:var(--muted); }
+    .score strong { display:block; color:var(--accent-ink); font-size:16px; font-weight:600; }
+    .card-meta { display:flex; flex-wrap:wrap; gap:5px 14px; margin:13px 0; color:var(--muted); font-size:12px; }
+    .excerpt { display:block; border-top:1px solid #eeebf2; padding-top:11px; }
+    .source-label { display:block; color:var(--muted); font-size:11px; font-weight:600; margin-bottom:5px; }
+    .source-label.from-note { color:var(--accent-ink); }
+    .excerpt-text { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.6; color:#625e6b; font-size:13px; white-space:pre-line; overflow-wrap:anywhere; }
+    .empty-state { background:var(--surface); border:1px dashed #d9d3e7; border-radius:var(--radius); padding:62px 28px; text-align:center; }
+    .empty-state svg { width:38px; height:38px; margin-bottom:15px; color:#9a90b8; }
+    .empty-state h3 { margin-bottom:6px; }
+    .empty-state p { color:var(--muted); font-size:13px; max-width:340px; margin:auto; }
+    .results-hint { font-size:11px; color:var(--muted); margin:15px 2px 0; }
+    .message { padding:11px 13px; border-radius:7px; margin-top:12px; font-size:13px; overflow-wrap:anywhere; }
+    .error { color:var(--error); background:#fff2f1; border:1px solid #f2d5d0; }
+    .success { color:var(--accent-ink); background:var(--accent-soft); border:1px solid #d8d0ff; }
+    dialog { color:var(--ink); background:var(--surface); border:1px solid var(--line); }
+    dialog::backdrop { background:#28232f66; }
+    .modal { border-radius:15px; width:620px; max-width:calc(100vw - 28px); max-height:90dvh; padding:26px; overflow:auto; }
+    .modal.lookup { width:880px; height: min(760px, 88dvh); }
+    .modal.lookup[open] { display:flex; flex-direction:column; }
+    .lookup .dialog-heading,.lookup #id-form,.lookup #lookup-status { flex-shrink:0; }
+    #lookup-results { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; overflow:auto; min-height:0; margin-top:16px; padding:4px; align-content:start; }
+    #lookup-results .candidate-card { min-width:0; }
+    .lookup-search { display:flex; gap:10px; }
+    .lookup-search input { flex:1; }
+    @media(max-width:600px) { #lookup-results { grid-template-columns:1fr; } .lookup-search { flex-wrap:wrap; } }
+    .dialog-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; margin-bottom:20px; }
+    .dialog-heading > div { min-width:0; }
+    .dialog-heading h2 { overflow-wrap:anywhere; }
+    .dialog-heading p { color:var(--muted); font-size:13px; margin-top:4px; }
+    fieldset { border:0; padding:0; margin:0; min-width:0; }
+    .form-actions { display:flex; align-items:center; justify-content:flex-end; gap:10px; margin-top:22px; }
+    .initial-note { border:1px solid var(--line); border-radius:9px; padding:13px; margin-top:10px; background:#faf9fc; }
+    .initial-note-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:7px; }
+    .initial-note .field { margin-bottom:10px; }
+    .initial-note textarea { min-height:75px; }
+    .notes-section { border-top:1px solid var(--line); padding-top:18px; margin-top:18px; }
+    .section-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .drawer { width:540px; max-width:100vw; height:100dvh; max-height:100dvh; margin:0 0 0 auto; padding:0; border:0; border-left:1px solid var(--line); }
+    .drawer[open] { display:flex; flex-direction:column; }
+    .drawer-header { padding:23px 25px 18px; border-bottom:1px solid var(--line); flex-shrink:0; }
+    .drawer-header .dialog-heading { margin-bottom:14px; }
+    .candidate-id { font-size:12px; color:var(--muted); margin-top:3px; }
+    .profile-meta { display:flex; flex-wrap:wrap; gap:7px 15px; color:var(--muted); font-size:13px; }
+    .tabs { display:flex; gap:22px; margin-top:20px; }
+    .tab { border:0; padding:8px 0; background:none; color:var(--muted); font-weight:600; border-bottom:2px solid transparent; }
+    .tab[aria-selected="true"] { color:var(--accent-ink); border-bottom-color:var(--accent-ink); }
+    .drawer-content { padding:22px 25px 30px; overflow:auto; min-height:0; flex:1; }
+    .chips { display:flex; gap:7px; flex-wrap:wrap; margin:9px 0 20px; }
+    .chip { font-size:12px; padding:4px 9px; border-radius:5px; background:#f0edff; color:#5744cb; }
+    .resume-text,.note-text { white-space:pre-wrap; overflow-wrap:anywhere; font-size:13px; line-height:1.75; }
+    .resume-text { margin-top:12px; }
+    .past-roles { margin-bottom:19px; font-size:13px; color:var(--muted); }
+    .note-item { padding:15px; border:1px solid var(--line); border-radius:9px; margin-bottom:12px; }
+    .note-item.matched { border-color:#b2a8ff; background:#faf8ff; }
+    .note-item summary { cursor:pointer; color:var(--muted); font-size:12px; }
+    .note-item .note-text { margin-top:11px; }
+    .matched-label { font-size:11px; font-weight:600; color:var(--accent-ink); margin-left:9px; }
+    .note-form { border-top:1px solid var(--line); margin-top:22px; padding-top:19px; }
+    .note-form h3 { margin-bottom:13px; }
+    .note-form .btn { margin-top:14px; width:100%; }
+    .loading { padding:35px 0; color:var(--muted); }
+    @media (max-width:760px) {
+      .topbar-inner { padding:16px 18px; }
+      .brand-label { display:none; }
+      .actions { gap:7px; }
+      .actions .btn { padding:8px 11px; font-size:12px; }
+      main { padding:25px 18px; }
+      h1 { font-size:26px; }
+      .workspace { grid-template-columns:1fr; gap:16px; }
+      .search-bar { padding:15px; }
+      .search-row { flex-direction:column; gap:10px; }
+      .search-row .btn { min-height:42px; }
+      .candidate-card { padding:16px; }
+      .candidate-role { font-size:12px; }
+      .score { font-size:10px; }
+      .score strong { font-size:14px; }
+      .results-heading { flex-wrap:wrap; }
+      .drawer { width:100vw; }
+      .drawer-header,.drawer-content { padding-left:20px; padding-right:20px; }
+      .modal { padding:20px; }
+      .two-cols { gap:10px; }
+      .empty-state { padding:40px 18px; }
+    }
+    @media (prefers-reduced-motion:reduce) { .btn.busy::before { animation:none; } }
+      .assessment-summary { display:block; margin-top:12px; }
+    .judgment { display:block; font-size:12px; margin-top:6px; }
+    .judgment.supported { color:#245d46; } .judgment.contradicted { color:#a23434; } .judgment.unknown { color:#696671; }
+    .drop-zone { border:1px dashed #b3a8d4; border-radius:9px; padding:15px; margin:12px 0; background:#faf8ff; }
+    .drop-zone.over { background:#e9e3ff; border-color:var(--accent-ink); }
+    .drop-zone input[type=file] { margin-top:9px; max-width:100%; }
+    .review-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px; }
+    .integrations-open { width:min(1050px,100vw); }
+    .integrations-open .information-layout { display:grid; grid-template-columns:minmax(0,1fr) minmax(260px,.8fr); gap:24px; }
+    #granola-panel { margin-top:22px; padding:19px 16px; border:1px solid var(--line); border-radius:9px; background:#f7f5f3; }
+    #meeting-list { margin-top:14px; }
+    .meeting { background:white; }
+    #open-granola { width:auto; }
+
+    .meeting { border:1px solid var(--line); border-radius:8px; padding:12px; margin-bottom:10px; cursor:grab; }
+    .meeting p { font-size:12px; color:var(--muted); margin:5px 0; }
+    .brand-icon { width:22px; height:22px; object-fit:contain; }
+    @media(max-width:650px) { .review-grid,.integrations-open .information-layout { grid-template-columns:1fr; } .topbar-inner { flex-wrap:wrap; } .actions { flex-wrap:wrap; width:100%; } .actions .btn { flex:1; } }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand"><span class="wordmark" role="img" aria-label="Popp"><svg aria-hidden="true" width="90" height="34" viewBox="0 0 1001 377" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M70.075 299.136V210.275H131.086C193.645 210.275 238.517 168.046 238.517 103.597C238.517 43.5519 193.202 0 130.201 0H0V299.136H70.075ZM70.075 62.0257H127.326C150.316 62.0257 168.445 82.7021 168.445 103.597C168.445 128.892 150.096 148.469 127.326 148.469H70.075V62.0257Z" fill="#28272C"/><path d="M359.703 306.365C432.429 306.365 482.609 252.255 482.609 185.171C482.609 118.524 432.429 63.9757 359.924 63.9757C287.862 63.9757 238.123 118.742 238.123 185.171C238.123 252.036 288.083 306.365 359.703 306.365ZM360.368 243.897C328.313 243.897 305.548 219.922 305.548 185.171C305.548 150.638 328.313 126.443 360.368 126.443C392.418 126.443 415.189 150.638 415.189 185.171C415.189 219.922 392.418 243.897 360.368 243.897Z" fill="#28272C"/><path d="M565.097 377V299.577L563.771 272.083C578.137 292.318 602.897 306.616 632.297 306.616C696.182 306.616 741.498 252.069 741.498 185.202C741.498 118.998 696.843 64.2271 631.192 64.2271C604.663 64.2271 578.582 76.326 561.781 100.082V71.2666H497.012V377H565.097ZM619.477 244.371C590.076 244.371 564.433 220.397 564.433 185.202C564.433 152.208 588.748 126.256 619.032 126.256C649.318 126.256 674.298 148.47 674.298 185.202C674.298 223.695 648.433 244.371 619.477 244.371Z" fill="#28272C"/><path d="M823.975 377V299.577L822.65 272.083C837.017 292.318 861.776 306.616 891.176 306.616C955.061 306.616 1000.38 252.069 1000.38 185.202C1000.38 118.998 955.722 64.2271 890.071 64.2271C863.542 64.2271 837.46 76.326 820.661 100.082V71.2666H755.89V377H823.975ZM878.355 244.371C848.956 244.371 823.311 220.397 823.311 185.202C823.311 152.208 847.626 126.256 877.911 126.256C908.196 126.256 933.176 148.47 933.176 185.202C933.176 223.695 907.312 244.371 878.355 244.371Z" fill="#28272C"/></svg></span><span class="brand-label">Recruiting workspace</span></div>
+      <div class="actions">
+        <button class="btn" id="open-id" type="button">Candidate lookup</button>
+        <button class="btn primary" id="open-create" type="button"><span aria-hidden="true">＋</span> Add candidate</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="intro"><h1>Candidate search</h1><p>Find candidates across resumes and recruiter notes.</p></div>
+    <form id="search-form" class="workspace">
+      <div class="search-bar">
+        <label for="query">What are you looking for?</label>
+        <div class="search-row">
+          <div class="query-wrap">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
+            <input id="query" name="query" type="search" required placeholder="e.g. an avionics technician interested in a lead role" autocomplete="off">
+          </div>
+          <button id="search-button" class="btn primary" type="submit">Search candidates</button>
+        </div>
+        <div id="search-error" class="message error" role="alert" hidden></div>
+      </div>
+      <aside>
+        <details class="filters" id="filters" open>
+          <summary>Filters</summary>
+          <div class="filter-content">
+            <div class="filter-reset"><button id="reset-filters" class="text-btn" type="button">Clear filters</button></div>
+            <div class="field"><label for="current-role">Current role</label><input id="current-role" data-filter name="current_job_title" placeholder="e.g. Mechanic"></div>
+            <div class="field"><label for="city">Current city</label><input id="city" data-filter name="location_city" placeholder="e.g. Dallas"></div>
+            <div class="field"><label for="region">Current state or region</label><input id="region" data-filter name="location_region" placeholder="e.g. Texas"></div>
+            <div class="field">
+              <span class="field-label">Years of experience</span>
+              <div class="two-cols"><input data-filter name="min_years_experience" type="number" min="0" step="1" placeholder="Min" aria-label="Minimum years of experience"><input data-filter name="max_years_experience" type="number" min="0" step="1" placeholder="Max" aria-label="Maximum years of experience"></div>
+            </div>
+            <div class="field"><label for="past-roles">Past roles</label><input id="past-roles" data-filter name="past_job_titles" placeholder="e.g. First Officer"><p class="hint">Separate multiple roles with commas.</p></div>
+            <div class="field"><label for="skills">Required skills</label><select id="skills" name="skills" multiple size="6" disabled aria-describedby="skills-hint"><option>Loading skills…</option></select><p id="skills-hint" class="hint">Ctrl/Cmd-click to select multiple. All selected skills and past roles must be present.</p><div id="skills-error" class="hint" role="status" hidden>Skills couldn't load. <button class="text-btn" id="retry-skills" type="button">Retry</button></div></div>
+            <div class="field"><label for="search-strategy">Search approach</label><select id="search-strategy" name="strategy"><option value="reranked">AI evidence assessment</option><option value="baseline">Similarity baseline</option></select><p class="hint">AI assesses up to 12 candidates. Filters remain strict.</p></div><div class="field"><label for="top-k">Results to show</label><input id="top-k" name="top_k" type="number" min="1" max="100" step="1" value="10" required></div>
+          </div>
+        </details>
+      </aside>
+      <section aria-labelledby="results-title" aria-busy="false" id="results-section">
+        <div class="results-heading"><h2 id="results-title">Candidates</h2><span id="result-count" role="status" aria-live="polite">Ready to search</span></div>
+        <div id="results" class="results-list"></div>
+        <p id="results-hint" class="results-hint" hidden>Relevance is search similarity, not a qualification check. Review the matching resume or note.</p>
+      </section>
+    </form>
+  </main>
+
+  <dialog class="modal lookup" id="id-dialog" aria-labelledby="id-title">
+    <div class="dialog-heading"><div><h2 id="id-title">Candidate lookup</h2><p>Browse candidates A–Z, or search by name to add notes or documents.</p></div><button class="icon-btn" type="button" data-close="id-dialog" aria-label="Close candidate lookup">×</button></div>
+    <form id="id-form"><label for="candidate-id-input">Search by name</label><div class="lookup-search"><input id="candidate-id-input" type="search" maxlength="200" placeholder="Full or partial name" autocomplete="off"><button class="btn primary" id="lookup-submit" type="submit">Find candidates</button></div><div id="id-error" class="message error" role="alert" hidden></div></form><p id="lookup-status" class="hint" role="status"></p><div id="lookup-results" aria-label="Candidates"></div>
+  </dialog>
+
+  <dialog class="modal" id="create-dialog" aria-labelledby="create-title">
+    <div class="dialog-heading"><div><h2 id="create-title">Add candidate</h2><p>Start with a resume. Include recruiter notes if available.</p></div><button id="create-close" class="icon-btn" type="button" data-close="create-dialog" aria-label="Close add candidate">×</button></div>
+    <form id="create-form">
+      <fieldset id="create-fields">
+        <div class="drop-zone" id="resume-drop">Drop a resume here or choose a file.
+          <input id="resume-file" type="file" accept=".txt,.md,.pdf,.docx" aria-label="Upload resume">
+          <p class="hint">TXT, Markdown, PDF or DOCX · up to 10 MB. Text-based documents only.</p></div>
+        <div class="field"><label for="candidate-name">Full name</label><input id="candidate-name" required autocomplete="name" placeholder="Candidate's name"></div>
+        <div class="field"><label for="candidate-resume">Resume</label><textarea id="candidate-resume" rows="7" required placeholder="Paste the candidate's resume here…"></textarea></div>
+        <button class="btn" id="pre-extract" type="button">Extract fields for review</button>
+        <p id="extraction-status" class="hint" role="status"></p>
+        <details id="review-fields"><summary>Review or enter candidate fields</summary>
+          <div class="review-grid">
+            <div><label for="draft-role">Current role</label><input id="draft-role"></div>
+            <div><label for="draft-years">Years of experience</label><input id="draft-years" type="number" min="0" step="1" value="0"></div>
+            <div><label for="draft-city">City</label><input id="draft-city"></div>
+            <div><label for="draft-region">State</label><input id="draft-region"></div>
+            <div><label for="draft-past">Past roles (one per line)</label><textarea id="draft-past" rows="2"></textarea></div>
+            <div><label for="draft-skills">Skills (one per line)</label><textarea id="draft-skills" rows="2"></textarea></div>
+          </div><p class="hint">Check extracted fields before saving. Skills are matched to the existing taxonomy.</p>
+        </details>
+        <section class="notes-section" aria-labelledby="initial-notes-title">
+          <div class="section-heading"><h3 id="initial-notes-title">Initial notes <span class="muted">(optional)</span></h3><button id="add-initial-note" class="text-btn" type="button">＋ Add note</button></div>
+          <div id="initial-notes"></div>
+        </section>
+      </fieldset>
+      <div id="create-error" class="message error" role="alert" hidden></div>
+      <div class="form-actions"><button id="create-cancel" class="btn" type="button" data-close="create-dialog">Cancel</button><button id="create-submit" class="btn primary" type="submit">Save candidate</button></div>
+    </form>
+  </dialog>
+
+  <dialog class="drawer" id="candidate-dialog" aria-labelledby="candidate-title">
+    <div class="drawer-header">
+      <div class="dialog-heading"><div><h2 id="candidate-title">Candidate</h2><p id="candidate-reference" class="candidate-id"></p></div><button id="detail-close" class="icon-btn" type="button" data-close="candidate-dialog" aria-label="Close candidate details">×</button></div>
+      <div id="profile-meta" class="profile-meta"></div>
+      <div id="detail-tabs" class="tabs" role="tablist" aria-label="Candidate information" hidden>
+        <button id="resume-tab" class="tab" type="button" role="tab" aria-controls="resume-panel" aria-selected="true" tabindex="0">Resume</button>
+        <button id="notes-tab" class="tab" type="button" role="tab" aria-controls="notes-panel" aria-selected="false" tabindex="-1">Recruiter notes</button>
+      </div>
+    </div>
+    <div class="drawer-content">
+      <div id="candidate-assessment"></div><div id="detail-loading" class="loading" role="status" hidden>Loading candidate…</div>
+      <div id="detail-error" class="message error" role="alert" hidden></div>
+      <div id="resume-panel" role="tabpanel" aria-labelledby="resume-tab" hidden><h3>Skills</h3><div id="candidate-skills" class="chips"></div><div id="candidate-past-roles" class="past-roles"></div><h3>Resume</h3><p id="resume-text" class="resume-text"></p></div>
+      <div id="notes-panel" role="tabpanel" aria-labelledby="notes-tab" hidden>
+        <div class="section-heading" style="margin-bottom:14px"><p class="hint" style="margin:0">Newest notes first.</p><button id="edit-profile" class="text-btn" type="button" hidden>Edit candidate profile</button><button id="focus-note" class="text-btn" type="button">＋ Add note</button></div>
+        <div id="candidate-notes"></div>
+        <div class="information-layout"><form id="note-form" class="note-form">
+          <h3>Add information</h3><p class="hint">Add details, upload a document or bring in a meeting transcript for this candidate.</p>
+          <button class="btn" id="open-granola" type="button" aria-expanded="false" aria-controls="granola-panel"><img class="brand-icon" src="https://www.granola.ai/favicon/favicon.svg" alt=""> Granola</button>
+          <fieldset id="note-fields"><div class="drop-zone" id="note-drop">Drop a document or a Granola transcript here.
+          <input id="note-file" type="file" accept=".txt,.md,.pdf,.docx" aria-label="Upload note document">
+          <p class="hint" id="note-upload-status" role="status">TXT, Markdown, PDF or DOCX · up to 10 MB.</p></div><p id="meeting-source" class="hint" hidden></p><button id="clear-meeting" class="text-btn" type="button" hidden>Remove transcript</button><div class="field"><label for="new-note">Details</label><textarea id="new-note" rows="4" required placeholder="Add information from your conversation with this candidate…"></textarea></div><label id="note-date-label" for="new-note-date">Recorded at <span class="muted">(optional, local time)</span></label><input id="new-note-date" type="datetime-local" step="1"><p id="note-date-hint" class="hint">Leave blank to use the current time.</p></fieldset>
+          <div id="note-error" class="message error" role="alert" hidden></div><div id="note-success" class="message success" role="status" hidden></div>
+          <button id="note-submit" class="btn primary" type="submit">Save information</button>
+        </form><aside id="granola-panel" hidden aria-labelledby="granola-title"><div class="section-heading"><h3 id="granola-title">Recent transcripts</h3><button id="close-granola" class="icon-btn" type="button" aria-label="Close recent transcripts">×</button></div><p class="hint">Drag a transcript into the document area, or select it to review.</p><div id="meeting-list"></div></aside></div>
+      </div>
+    </div>
+  </dialog>
+
+  <template id="initial-note-template">
+    <div class="initial-note">
+      <div class="initial-note-top"><span class="field-label" style="margin:0">Recruiter note</span><button class="text-btn remove-note" type="button" aria-label="Remove initial note">Remove</button></div>
+      <div class="field"><label class="note-label">Note</label><textarea class="initial-note-text" rows="3" placeholder="Candidate preferences, availability or conversation notes…"></textarea></div>
+      <label class="date-label">Recorded at <span class="muted">(optional, local time)</span></label><input class="initial-note-date" type="datetime-local" step="1">
+    </div>
+  </template>
+
+  <script>
+    'use strict';
+    const $ = id => document.getElementById(id);
+    const gradeLabels = ['Incompatible','Insufficient evidence','Potential match','Good match','Strong match'];
+    const state = { results:[], candidate:null, match:null, searchBusy:false, createBusy:false, noteBusy:false, detailController:null, noteSequence:0 };
+    const searchIcon = '<svg aria-hidden="true" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2"><circle cx="21" cy="21" r="12"/><path d="m30 30 10 10"/></svg>';
+    function node(tag, className, text) { const element=document.createElement(tag); if(className) element.className=className; if(text!==undefined) element.textContent=text; return element; }
+    function message(id, text='') { $(id).textContent=text; $(id).hidden=!text; }
+    function busy(button, value, label) { button.disabled=value; button.classList.toggle('busy',value); button.textContent=label; }
+    function locationText(candidate) { return [candidate.location_city,candidate.location_region].filter(Boolean).join(', ') || 'Location not provided'; }
+    function experienceText(candidate) { return `${candidate.years_experience} ${candidate.years_experience===1?'year':'years'} of experience`; }
+    function dateText(value) { return new Intl.DateTimeFormat('en-GB',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(value)); }
+    function initials(name) { return name.trim().split(/\s+/).slice(0,2).map(word=>word[0]||'').join('').toUpperCase() || '?'; }
+    function noteInput(text, date) { const result={note:text}; if(date) { const value=new Date(date); if(!Number.isFinite(value.getTime())) throw new Error('Enter a valid recorded time.'); result.timestamp=value.toISOString(); } return result; }
+    async function api(path, options={}) {
+      const response=await fetch(path,{method:options.body===undefined?'GET':'POST',headers:options.body===undefined?{}:{'Content-Type':'application/json'},body:options.body===undefined?undefined:JSON.stringify(options.body),signal:options.signal});
+      let data;
+      try { data=await response.json(); }
+      catch(error) { const failure=new Error('The service could not complete this request. Please try again.'); failure.status=response.status; throw failure; }
+      if(!response.ok) { const error=new Error(Array.isArray(data.detail)?data.detail.map(item=>item.msg.replace(/^Value error, /,'')).join(' '):(data.detail||'The request could not be completed.')); error.status=response.status; throw error; }
+      return data;
+    }
+    function errorText(error, context) {
+      if(error.status===503) return context==='create'?'The candidate could not be saved because resume processing is unavailable. Your details have been kept.':context==='note'?'The note could not be saved because note processing is unavailable. Please try again.':'Search is temporarily unavailable. Please try again.';
+      if(error.status===404) return 'Candidate not found. Check the ID and try again.';
+      if(error instanceof TypeError) return 'Unable to reach the service. Please try again.';
+      return error.message;
+    }
+    function emptyResults(title, text) { const box=node('div','empty-state'); box.innerHTML=searchIcon; box.append(node('h3','',title),node('p','',text)); $('results').replaceChildren(box); }
+    function startSearchLoading(strategy) {
+      // These are presentation steps, not backend progress or estimated completion.
+      const steps=strategy==='baseline'
+        ? ['Finding candidates…','Comparing resumes and notes…']
+        : ['Understanding your requirements…','Finding candidates…','Assessing candidate matches…'];
+      state.results=[];
+      const show=index=>{ emptyResults(steps[index],'Searching resumes and recruiter notes.'); };
+      show(0);
+      const timers=steps.slice(1).map((_,index)=>setTimeout(()=>show(index+1),(index+1)*1100));
+      return ()=>timers.forEach(clearTimeout);
+    }
+    function renderResults(data) {
+      state.results=data.results; state.requirements=data.requirements || [];
+      $('results-hint').textContent=data.strategy==='reranked'?`AI assessed ${data.shortlist_size} candidates. Grades: 0 incompatible · 1 insufficient evidence · 2 potential · 3 good · 4 strong. Review the sources; grades are not probabilities. ${data.warning || ''}`:'Relevance is search similarity, not a qualification check.';
+      $('result-count').textContent=`${data.results.length} shown · ${data.total_matching_filters} pass filters`;
+      $('results-hint').hidden=!data.results.length;
+      if(!data.results.length) { emptyResults('No candidates found','Try a different query or fewer filters.'); return; }
+      const fragment=document.createDocumentFragment();
+      for(const candidate of data.results) {
+        const card=node('button','candidate-card'); card.type='button'; card.setAttribute('aria-label',`View ${candidate.name}, ${candidate.current_job_title || 'role not provided'}`);
+        const top=node('span','card-top'); const avatar=node('span','avatar',initials(candidate.name)); avatar.setAttribute('aria-hidden','true');
+        const info=node('span','card-info'); info.append(node('span','candidate-name',candidate.name),node('span','candidate-role',candidate.current_job_title || 'Role not provided'));
+        const score=node('span','score',candidate.relevance_grade != null?'Relevance grade':'Similarity');
+        score.title=candidate.relevance_grade != null?'Evidence-based grade, not a probability. Open the candidate to review sources.':'Embedding similarity, not a qualification score';
+        score.append(node('strong','',candidate.relevance_grade != null?`${candidate.relevance_grade}/4`:candidate.score.toFixed(3)));
+        if(candidate.relevance_grade != null) score.append(node('span','',gradeLabels[candidate.relevance_grade]));
+        top.append(avatar,info,score);
+        const meta=node('span','card-meta'); meta.append(node('span','',locationText(candidate)),node('span','',experienceText(candidate)),node('span','',`#${candidate.id}`));
+        const excerpt=node('span','excerpt'); const fromNote=candidate.match_source==='note' && candidate.matched_note;
+        excerpt.append(node('span',`source-label${fromNote?' from-note':''}`,fromNote?`Matched in recruiter note · ${dateText(candidate.matched_note.timestamp)}`:'Matched in resume'),node('span','excerpt-text',fromNote?candidate.matched_note.note:candidate.resume));
+        card.append(top,meta,excerpt);
+        if(candidate.assessment) {
+          const assessment=node('span','assessment-summary');
+          for(const item of candidate.assessment.requirements) {
+            const label=state.requirements[item.requirement_index]?.text || 'Requirement';
+            assessment.append(node('span',`judgment ${item.status}`,`${item.status.toUpperCase()} · ${label}`));
+          }
+          if(candidate.evidence_truncated) assessment.append(node('span','hint','Some source text was omitted from this assessment.'));
+          card.append(assessment);
+        } card.addEventListener('click',()=>openCandidate(candidate.id,candidate)); fragment.append(card);
+      }
+      $('results').replaceChildren(fragment);
+    }
+    $('search-form').addEventListener('submit',async event=>{
+      event.preventDefault(); if(state.searchBusy) return;
+      const query=$('query').value.trim(); if(!query) { message('search-error','Enter a role, skill or candidate requirement to search for.'); $('query').focus(); return; }
+      const form=new FormData(event.currentTarget); const body={query,top_k:Number(form.get('top_k')),strategy:form.get('strategy')};
+      for(const key of ['current_job_title','location_city','location_region']) { const value=String(form.get(key)||'').trim(); if(value) body[key]=value; }
+      for(const key of ['min_years_experience','max_years_experience']) { const value=form.get(key); if(value!=='') body[key]=Number(value); }
+      const titles=String(form.get('past_job_titles')||'').split(',').map(value=>value.trim()).filter(Boolean); if(titles.length) body.past_job_titles=titles;
+      const skills=form.getAll('skills'); if(skills.length && !$('skills').disabled) body.skills=skills;
+      if(body.min_years_experience!==undefined && body.max_years_experience!==undefined && body.min_years_experience>body.max_years_experience) { message('search-error','Minimum experience cannot exceed maximum experience.'); return; }
+      message('search-error'); state.searchBusy=true; busy($('search-button'),true,'Searching…'); $('results-section').setAttribute('aria-busy','true'); $('result-count').textContent='Searching resumes and notes…'; $('results-hint').hidden=true; const stopLoading=startSearchLoading(body.strategy);
+      try { const data=await api('/search',{body}); stopLoading(); renderResults(data); }
+      catch(error) { stopLoading(); message('search-error',errorText(error,'search')); $('result-count').textContent='Search unavailable'; emptyResults('Search could not be completed','Your query and filters have been kept. Try again shortly.'); }
+      finally { stopLoading(); state.searchBusy=false; busy($('search-button'),false,'Search candidates'); $('results-section').setAttribute('aria-busy','false'); }
+    });
+    $('reset-filters').addEventListener('click',()=>{ document.querySelectorAll('[data-filter]').forEach(input=>input.value=''); [...$('skills').options].forEach(option=>option.selected=false); });
+    async function loadSkills() {
+      $('skills').disabled=true; $('skills-error').hidden=true;
+      try { const taxonomy=await api('/taxonomy'); const fragment=document.createDocumentFragment(); for(const [category,skills] of Object.entries(taxonomy.categories)) { const group=node('optgroup'); group.label=category; for(const skill of skills) { const option=node('option','',skill); option.value=skill; group.append(option); } fragment.append(group); } $('skills').replaceChildren(fragment); $('skills').disabled=false; }
+      catch(error) { $('skills').replaceChildren(node('option','','Skills unavailable')); $('skills-error').hidden=false; }
+    }
+    $('retry-skills').addEventListener('click',loadSkills);
+    $('focus-note').addEventListener('click',()=>{ $('note-form').scrollIntoView({block:'start'}); $('new-note').focus({preventScroll:true}); });
+    document.querySelectorAll('[data-close]').forEach(button=>button.addEventListener('click',()=>$(button.dataset.close).close()));
+    $('create-dialog').addEventListener('cancel',event=>{ if(state.createBusy) event.preventDefault(); });
+    $('candidate-dialog').addEventListener('cancel',event=>{ if(state.noteBusy) event.preventDefault(); });
+    $('candidate-dialog').addEventListener('close',()=>{ state.detailController?.abort(); });
+    function selectTab(tab, focus=false) {
+      for(const name of ['resume','notes']) { const active=tab===name; $(`${name}-tab`).setAttribute('aria-selected',String(active)); $(`${name}-tab`).tabIndex=active?0:-1; $(`${name}-panel`).hidden=!active; }
+      if(focus) $(`${tab}-tab`).focus();
+    }
+    for(const tab of ['resume','notes']) { $(`${tab}-tab`).addEventListener('click',()=>selectTab(tab)); $(`${tab}-tab`).addEventListener('keydown',event=>{ if(['ArrowLeft','ArrowRight','Home','End'].includes(event.key)) { event.preventDefault(); selectTab(event.key==='Home'?'resume':event.key==='End'?'notes':tab==='resume'?'notes':'resume',true); } }); }
+    function renderNotes() {
+      const notes=[...(state.candidate.notes||[])].sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)||b.id-a.id);
+      $('notes-tab').textContent=`Recruiter notes (${notes.length})`;
+      if(!notes.length) { $('candidate-notes').replaceChildren(node('p','muted','No recruiter notes yet.')); return; }
+      const fragment=document.createDocumentFragment();
+      for(const note of notes) { const matched=state.match?.matched_note?.id===note.id; const item=node('details',`note-item${matched?' matched':''}`); item.open=matched || note.note.length<400; const summary=node('summary'); const time=node('time','',dateText(note.timestamp)); time.dateTime=note.timestamp; summary.append(time); if(matched) summary.append(node('span','matched-label','Matched your search')); item.append(summary,node('p','note-text',note.note)); fragment.append(item); }
+      $('candidate-notes').replaceChildren(fragment);
+    }
+    function renderCandidate(candidate, match=null) {
+      $('candidate-assessment').replaceChildren();
+      if(match?.assessment) {
+        $('candidate-assessment').append(node('h3','',`Relevance grade ${match.relevance_grade}/4 · ${gradeLabels[match.relevance_grade]}`),node('p','hint',`Retrieval similarity: ${match.score.toFixed(3)}. Final order uses the evidence grade, then evidence and similarity tie-breaks.`));
+        for(const item of match.assessment.requirements) {
+          const section=node('div','note-item');
+          section.append(node('p',`judgment ${item.status}`,`${item.status.toUpperCase()} · ${state.requirements[item.requirement_index]?.text || 'Requirement'}`));
+          for(const evidence of item.evidence) section.append(node('p','note-text',`${evidence.source_id}: “${evidence.quote}”`));
+          $('candidate-assessment').append(section);
+        }
+      }
+      $('note-form').hidden=!!match; $('focus-note').hidden=!!match; $('edit-profile').hidden=!match;
+      state.candidate=candidate; state.match=match; $('candidate-title').textContent=candidate.name; $('candidate-reference').textContent=`Candidate #${candidate.id}`;
+      $('profile-meta').replaceChildren(node('span','',candidate.current_job_title||'Role not provided'),node('span','',locationText(candidate)),node('span','',experienceText(candidate)));
+      $('candidate-skills').replaceChildren(...candidate.skills.map(skill=>node('span','chip',skill))); if(!candidate.skills.length) $('candidate-skills').append(node('span','muted','No skills recorded.'));
+      $('candidate-past-roles').textContent=candidate.past_job_titles.length?`Past roles: ${candidate.past_job_titles.join(' · ')}`:'';
+      $('resume-text').textContent=candidate.resume; renderNotes(); $('detail-loading').hidden=true; $('detail-tabs').hidden=false; selectTab(match?.match_source==='note'?'notes':'resume');
+    }
+    async function openCandidate(id, match=null) {
+      state.detailController?.abort(); const controller=new AbortController(); state.detailController=controller; state.candidate=null; state.match=null;
+      $('candidate-assessment').replaceChildren(); $('candidate-title').textContent='Candidate'; $('candidate-reference').textContent=`#${id}`; $('profile-meta').replaceChildren(); $('detail-tabs').hidden=true; $('resume-panel').hidden=true; $('notes-panel').hidden=true; $('detail-loading').hidden=false; message('detail-error'); message('note-error'); message('note-success'); $('note-form').reset(); clearMeeting(); closeGranola();
+      if(!$('candidate-dialog').open) $('candidate-dialog').showModal();
+      try { const candidate=await api(`/candidates/${id}`,{signal:controller.signal}); if(!controller.signal.aborted) renderCandidate(candidate,match); }
+      catch(error) { if(error.name!=='AbortError') { $('detail-loading').hidden=true; message('detail-error',errorText(error,'detail')); } }
+    }
+    function openLookup(name='') {
+      $('id-form').reset(); $('candidate-id-input').value=name; $('lookup-results').replaceChildren();
+      $('lookup-status').textContent=''; message('id-error'); $('id-dialog').showModal();
+      loadLookup(); $('candidate-id-input').focus();
+    }
+    $('open-id').addEventListener('click',()=>openLookup());
+    $('edit-profile').addEventListener('click',()=>{
+      const name=state.candidate?.name || ''; $('candidate-dialog').close(); openLookup(name);
+    });
+    let lookupController;
+    $('id-dialog').addEventListener('close',()=>lookupController?.abort());
+    async function loadLookup() {
+      const name=$('candidate-id-input').value.trim();
+      lookupController?.abort(); const controller=new AbortController(); lookupController=controller;
+      message('id-error'); $('lookup-results').replaceChildren(); $('lookup-status').textContent='Looking up candidates…';
+      try {
+        const candidates=await api(`/candidates?name=${encodeURIComponent(name)}`,{signal:controller.signal});
+        if(controller.signal.aborted) return;
+        $('lookup-status').textContent=candidates.length?`${candidates.length} candidates · A–Z. Select a candidate to add information.`:(name?'No candidates found. Try another name.':'No candidates yet. Add a candidate to get started.');
+        for(const candidate of candidates) {
+          const card=node('button','candidate-card'); card.type='button';
+          card.append(node('span','candidate-name',candidate.name),node('span','candidate-role',candidate.current_job_title || 'Role not provided'),node('span','hint',`${locationText(candidate)} · #${candidate.id}`));
+          card.addEventListener('click',async()=>{ $('id-dialog').close(); await openCandidate(candidate.id); if(state.candidate?.id===candidate.id) selectTab('notes'); });
+          $('lookup-results').append(card);
+        }
+      } catch(error) { if(error.name!=='AbortError') { $('lookup-status').textContent=''; message('id-error','Candidate lookup failed. Please try again.'); } }
+    }
+    $('id-form').addEventListener('submit',event=>{ event.preventDefault(); loadLookup(); });
+    $('candidate-id-input').addEventListener('input',()=>{ if(!$('candidate-id-input').value) loadLookup(); });
+    function addInitialNote() {
+      const row=$('initial-note-template').content.firstElementChild.cloneNode(true); const id=++state.noteSequence;
+      row.querySelector('.initial-note-text').id=`initial-text-${id}`; row.querySelector('.note-label').htmlFor=`initial-text-${id}`; row.querySelector('.initial-note-date').id=`initial-date-${id}`; row.querySelector('.date-label').htmlFor=`initial-date-${id}`;
+      row.querySelector('.remove-note').addEventListener('click',()=>row.remove()); $('initial-notes').append(row);
+    }
+    $('add-initial-note').addEventListener('click',addInitialNote);
+    $('open-create').addEventListener('click',()=>{ $('create-form').reset(); $('review-fields').open=false; draftReady=false; message('extraction-status'); $('initial-notes').replaceChildren(); addInitialNote(); message('create-error'); $('create-dialog').showModal(); });
+    $('create-form').addEventListener('submit',async event=>{
+      event.preventDefault(); if(state.createBusy) return; message('create-error');
+      const name=$('candidate-name').value.trim(); const resume=$('candidate-resume').value;
+      if(!name || !resume.trim()) { message('create-error','Enter a name and a resume to save the candidate.'); return; }
+      let notes;
+      try { notes=[...$('initial-notes').children].flatMap(row=>{ const text=row.querySelector('.initial-note-text').value; const date=row.querySelector('.initial-note-date').value; if(!text.trim()) { if(date) throw new Error('Enter note text or remove the empty note.'); return []; } return [noteInput(text,date)]; }); }
+      catch(error) { message('create-error',error.message); return; }
+      state.createBusy=true; $('create-fields').disabled=true; $('create-close').disabled=true; $('create-cancel').disabled=true; busy($('create-submit'),true,'Saving candidate…');
+      try { const candidate=await api('/candidates',{body:{name,resume,notes,...((draftReady || $('review-fields').open)?{fields:readDraftFields()}: {})}}); $('create-dialog').close(); await openCandidate(candidate.id); }
+      catch(error) { message('create-error',errorText(error,'create')); $('create-error').scrollIntoView({block:'nearest'}); }
+      finally { state.createBusy=false; $('create-fields').disabled=false; $('create-close').disabled=false; $('create-cancel').disabled=false; busy($('create-submit'),false,'Save candidate'); }
+    });
+    $('note-form').addEventListener('submit',async event=>{
+      event.preventDefault(); if(state.noteBusy || !state.candidate) return; message('note-error'); message('note-success');
+      const text=$('new-note').value; if(!text.trim()) { message('note-error','Enter some note text before saving.'); $('new-note').focus(); return; }
+      let body; try { body=noteInput(text,$('new-note-date').value); } catch(error) { message('note-error',error.message); return; }
+      state.noteBusy=true; $('note-fields').disabled=true; $('detail-close').disabled=true; busy($('note-submit'),true,'Saving note…');
+      try {
+        let saved, inserted=true;
+        if(selectedMeeting) {
+          const result=await api(`/integrations/granola/meetings/${encodeURIComponent(selectedMeeting.id)}/import`,{body:{candidate_id:state.candidate.id,note:text}});
+          saved=result.note; inserted=result.inserted;
+        } else saved=await api(`/candidates/${state.candidate.id}/notes`,{body});
+        if(!state.candidate.notes.some(note=>note.id===saved.id)) state.candidate.notes.push(saved);
+        renderNotes(); $('note-form').reset(); clearMeeting();
+        message('note-success',inserted?'Information saved. Run your search again to update the ranking.':'This transcript is already attached to this candidate.'); $('note-success').scrollIntoView({block:'nearest'});
+      }
+      catch(error) { message('note-error',errorText(error,'note')); }
+      finally { state.noteBusy=false; $('note-fields').disabled=false; $('detail-close').disabled=false; busy($('note-submit'),false,'Save information'); }
+    });
+    if(window.matchMedia('(max-width:760px)').matches) $('filters').open=false;
+
+    let draftReady=false, meetings=[], selectedMeeting=null;
+    function readDraftFields() {
+      return {current_job_title:$('draft-role').value, years_experience:Number($('draft-years').value),
+        location_city:$('draft-city').value, location_region:$('draft-region').value,
+        past_job_titles:$('draft-past').value.split('\n').filter(v=>v.trim()), skills:$('draft-skills').value.split('\n').filter(v=>v.trim())};
+    }
+    function fillDraft(draft) {
+      $('candidate-name').value=draft.name || $('candidate-name').value;
+      for(const [id,key] of [['draft-role','current_job_title'],['draft-years','years_experience'],['draft-city','location_city'],['draft-region','location_region']]) $(id).value=draft[key];
+      $('draft-past').value=draft.past_job_titles.join('\n'); $('draft-skills').value=draft.skills.join('\n');
+      draftReady=true; $('review-fields').open=true;
+    }
+    $('review-fields').addEventListener('input',()=>{draftReady=true;});
+    $('candidate-resume').addEventListener('input',()=>{ if(draftReady) message('extraction-status','Resume changed. Extract fields again or review the existing fields before saving.'); });
+    async function uploadText(file) {
+      if(!file || !/\.(txt|md|pdf|docx)$/i.test(file.name)) throw new Error('Choose a TXT, Markdown, PDF or DOCX file.');
+      if(!file.size || file.size>10*1024*1024) throw new Error('Choose a non-empty file up to 10 MB.');
+      const body=new FormData(); body.append('file',file);
+      const response=await fetch('/documents/extract',{method:'POST',body}); const data=await response.json();
+      if(!response.ok) throw new Error(typeof data.detail==='string'?data.detail:'Unable to extract this document.');
+      return data;
+    }
+    function bindFileDrop(zoneId,inputId,handler) {
+      const zone=$(zoneId),input=$(inputId);
+      input.addEventListener('change',()=>{ if(input.files.length) handler(input.files[0]); input.value=''; });
+      zone.addEventListener('dragover',e=>{ e.preventDefault(); zone.classList.add('over'); });
+      zone.addEventListener('dragleave',()=>zone.classList.remove('over'));
+      zone.addEventListener('drop',e=>{ e.preventDefault(); zone.classList.remove('over'); if(e.dataTransfer.getData('application/x-granola-meeting')) return; if(e.dataTransfer.files.length!==1) { alert('Please add one document at a time.'); return; } handler(e.dataTransfer.files[0]); });
+    }
+    async function prepareResume(file=null) {
+      if(state.createBusy) return;
+      state.createBusy=true; $('create-fields').disabled=true; $('create-submit').disabled=true; $('create-close').disabled=true; $('create-cancel').disabled=true;
+      message('create-error');
+      try {
+        if(file) { message('extraction-status','Reading document…'); const result=await uploadText(file); $('candidate-resume').value=result.text; $('candidate-name').value=''; fillDraft({name:'',current_job_title:'',years_experience:0,location_city:'',location_region:'',past_job_titles:[],skills:[]}); draftReady=false; $('review-fields').open=false; }
+        const text=$('candidate-resume').value;
+        if(!text.trim()) throw new Error('Add resume text first.');
+        message('extraction-status','Extracting candidate fields…');
+        const result=await api('/candidates/pre-extract',{body:{text}}); fillDraft(result.draft);
+        message('extraction-status','Fields ready. Review and correct them before saving.');
+      } catch(error) { message('create-error',error.message); message('extraction-status','Nothing saved. Your text is available for review.'); }
+      finally { state.createBusy=false; $('create-fields').disabled=false; $('create-submit').disabled=false; $('create-close').disabled=false; $('create-cancel').disabled=false; }
+    }
+    $('pre-extract').addEventListener('click',()=>prepareResume());
+    bindFileDrop('resume-drop','resume-file',prepareResume);
+    bindFileDrop('note-drop','note-file',async file=>{
+      if(state.noteBusy) return;
+      state.noteBusy=true; $('note-fields').disabled=true; $('note-submit').disabled=true; $('detail-close').disabled=true;
+      try { message('note-upload-status','Reading document…'); const result=await uploadText(file); clearMeeting(); $('new-note').value=result.text; message('note-upload-status',`${result.filename}: ready to review and save.`); }
+      catch(error) { message('note-error',error.message); message('note-upload-status'); }
+      finally { state.noteBusy=false; $('note-fields').disabled=false; $('note-submit').disabled=false; $('detail-close').disabled=false; }
+    });
+    function clearMeeting() {
+      selectedMeeting=null; message('meeting-source'); $('clear-meeting').hidden=true; $('new-note-date').disabled=false; for(const id of ['new-note-date','note-date-label','note-date-hint']) $(id).hidden=false;
+    }
+    function closeGranola() {
+      $('granola-panel').hidden=true; $('candidate-dialog').classList.remove('integrations-open'); $('open-granola').setAttribute('aria-expanded','false');
+    }
+    function selectMeeting(id) {
+      if(state.noteBusy) return;
+      const meeting=meetings.find(m=>m.id===id); if(!meeting) return;
+      selectedMeeting=meeting; $('new-note').value=meeting.text;
+      message('meeting-source',`Granola · ${meeting.title} · ${dateText(meeting.timestamp)}`);
+      $('clear-meeting').hidden=false; $('new-note-date').value=''; $('new-note-date').disabled=true; for(const id of ['new-note-date','note-date-label','note-date-hint']) $(id).hidden=true;
+      message('note-success'); message('note-error'); $('new-note').focus();
+    }
+    $('clear-meeting').addEventListener('click',()=>{clearMeeting(); $('new-note').value='';});
+    $('close-granola').addEventListener('click',closeGranola);
+    $('open-granola').addEventListener('click',async()=>{
+      if(!$('granola-panel').hidden) { closeGranola(); return; }
+      const candidateId=state.candidate?.id;
+      $('granola-panel').hidden=false; $('candidate-dialog').classList.add('integrations-open'); $('open-granola').setAttribute('aria-expanded','true'); $('meeting-list').textContent='Loading transcripts…';
+      try {
+        const incoming=await api('/integrations/granola/meetings');
+        if(state.candidate?.id!==candidateId) return;
+        meetings=incoming; $('meeting-list').replaceChildren();
+        if(!meetings.length) $('meeting-list').textContent='No recent transcripts.';
+        for(const meeting of meetings) {
+          const card=node('article','meeting'); card.draggable=true;
+          card.append(node('strong','',meeting.title),node('p','',dateText(meeting.timestamp)),node('p','',meeting.participants.join(', ')));
+          const button=node('button','text-btn','Use transcript'); button.type='button'; button.addEventListener('click',()=>selectMeeting(meeting.id)); card.append(button);
+          card.addEventListener('dragstart',e=>e.dataTransfer.setData('application/x-granola-meeting',meeting.id)); $('meeting-list').append(card);
+        }
+      } catch(error) { $('meeting-list').textContent=error.message; }
+    });
+    $('note-drop').addEventListener('drop',e=>{
+      const id=e.dataTransfer.getData('application/x-granola-meeting'); if(!id) return;
+      e.preventDefault(); selectMeeting(id);
+    });
+
+    emptyResults('Start with a role or requirement','Search resumes and recruiter notes, then use filters to narrow the results.');
+    loadSkills();
+  </script>
+</body>
+</html>

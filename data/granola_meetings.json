@@ -1,0 +1,32 @@
+[
+  {
+    "id": "demo-001",
+    "title": "Pilot availability call",
+    "timestamp": "2026-10-12T09:00:00Z",
+    "participants": [
+      "Alex Morgan",
+      "Recruiter"
+    ],
+    "text": "Recruiter: Which schedules work for you?\nAlex Morgan: Available weekends and early starts. Based in Austin, open to relocating to Dallas. Not available for overnight shifts."
+  },
+  {
+    "id": "demo-002",
+    "title": "Aircraft maintenance follow-up",
+    "timestamp": "2026-10-11T14:30:00Z",
+    "participants": [
+      "Sam Rivera",
+      "Recruiter"
+    ],
+    "text": "Sam Rivera: My aircraft maintenance contract finishes in four weeks. Interested in permanent work in Texas.\nRecruiter: We will confirm certifications before submitting your profile."
+  },
+  {
+    "id": "demo-003",
+    "title": "Ground operations screening",
+    "timestamp": "2026-10-10T11:00:00Z",
+    "participants": [
+      "Jordan Lee",
+      "Recruiter"
+    ],
+    "text": "Jordan Lee: Looking for ground operations work near Denver. Available to start in two weeks and happy with weekend shifts. Cannot relocate at the moment."
+  }
+]

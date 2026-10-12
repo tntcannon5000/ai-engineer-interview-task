@@ -5,3 +5,11 @@ __pycache__/
 data/applicants.db
 .idea/
 .pytest_cache/
+
+evals/results/
+
+# Local preparation and intermediate diagrams (not part of the submission).
+/INTERVIEW-PREP.md
+/to-do-improvements.md
+/boards/
+/evals/RESULTS.md

@@ -1,0 +1,117 @@
+{
+  "name": "recruiter-queries-v1",
+  "judgments": "draft",
+  "description": "Source-backed draft judgments for the original 100 candidates/119 notes. Labels identify known positive examples, not exhaustive relevance judgments; human review pending. Evaluate retrieval/reranking tradeoffs, not hiring suitability.",
+  "cases": [
+    {
+      "id": "fueler-pay-overtime",
+      "kind": "retrieval",
+      "search": {
+        "query": "Aircraft fueler seeking at least $27 per hour and open to overtime",
+        "top_k": 5
+      },
+      "relevant_ids": [
+        9
+      ],
+      "rationale": "Resume identifies aircraft fueler; note states minimum pay and overtime willingness."
+    },
+    {
+      "id": "houston-customer-service",
+      "kind": "retrieval",
+      "search": {
+        "query": "Customer service agent seeking $45K and only considering IAH or HOU roles",
+        "top_k": 5
+      },
+      "relevant_ids": [
+        10
+      ],
+      "rationale": "Resume role plus separate location restriction and salary notes."
+    },
+    {
+      "id": "gate-agent-notice",
+      "kind": "retrieval",
+      "search": {
+        "query": "Gate agent looking for $25 per hour and needing three weeks notice",
+        "top_k": 5
+      },
+      "relevant_ids": [
+        81
+      ],
+      "rationale": "Resume role combined with pay and notice notes."
+    },
+    {
+      "id": "lead-attendant-relocation",
+      "kind": "retrieval",
+      "search": {
+        "query": "Lead flight attendant willing to relocate to Orlando or Tampa",
+        "top_k": 5
+      },
+      "relevant_ids": [
+        46
+      ],
+      "rationale": "Resume role plus explicit relocation preference in notes."
+    },
+    {
+      "id": "avionics-phoenix",
+      "kind": "retrieval",
+      "search": {
+        "query": "Avionics technician interested only in PHX based positions",
+        "top_k": 5
+      },
+      "relevant_ids": [
+        63
+      ],
+      "rationale": "Resume specialization plus geographic restriction in notes."
+    },
+    {
+      "id": "flight-attendant-days",
+      "kind": "retrieval",
+      "search": {
+        "query": "Flight attendant who wants day shifts rather than overnight schedules",
+        "top_k": 5
+      },
+      "relevant_ids": [
+        31,
+        73
+      ],
+      "rationale": "Notes explicitly describe day preferences or restrictions; resume establishes role."
+    },
+    {
+      "id": "dispatcher-houston",
+      "kind": "retrieval",
+      "search": {
+        "query": "Flight dispatcher restricted to IAH or HOU based roles",
+        "top_k": 5
+      },
+      "relevant_ids": [
+        56
+      ],
+      "rationale": "Resume and location restriction note."
+    },
+    {
+      "id": "captain-northeast",
+      "kind": "retrieval",
+      "search": {
+        "query": "Captain open to relocating with a preference for BOS or JFK",
+        "top_k": 5
+      },
+      "relevant_ids": [
+        71
+      ],
+      "rationale": "Resume role plus Northeast relocation preference."
+    },
+    {
+      "id": "overnight-negation",
+      "kind": "retrieval",
+      "search": {
+        "query": "Aircraft fueler available to work overnight shifts",
+        "top_k": 5
+      },
+      "relevant_ids": [],
+      "contradicted_ids": [
+        51
+      ],
+      "rationale": "Candidate 51 explicitly cannot work overnight. No exhaustive positive labels: measure demotion of this known contradiction, not empty-result correctness."
+    }
+  ]
+}

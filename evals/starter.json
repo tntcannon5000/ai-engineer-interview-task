@@ -1,0 +1,54 @@
+{
+  "name": "pipeline-smoke-v1",
+  "judgments": "draft",
+  "description": "Infrastructure smoke cases only. Recruiter relevance judgments and difficult cases are pending joint review. IDs refer to original supplied fixtures.",
+  "cases": [
+    {
+      "id": "resume-literal",
+      "kind": "retrieval",
+      "search": {
+        "query": "Jennifer Johnson\nNashville, Tennessee\n\nProfessional Profile\nHighly accomplished and safety-oriented Captain with extensive experience in commercial and charter aviation operations. Proven ability to lead flight crews, ensure regulatory compliance, and deliver exceptional flight performance. Possessing Type Rating A320 and Type Rating B737, with a strong background as a Line Check Airman, committed to upholding the highest standards of safety and operational efficiency. Proficient in Incident Reporting and experienced with demanding Shift Work schedules. Holds a Commercial Pilot License.\n\nExperience\nCaptain | Delta Air Lines | Nashville, Tennessee | 2022-Present\n* Commanded over 500 flights as Captain on A320 aircraft, ensuring safe and efficient operations.\n* Served as a Line Check Airman, responsible for evaluating and training 20+ First Officers.\n* Expertly managed complex flight scenarios, including adverse weather and technical issues, leading to 100% on-time and safe arrivals.\n\nCharter Pilot | Wheels Up | Philadelphia, Pennsylvania | 2017-2022\n* Piloted various executive jet aircraft, completing over 700 successful charter missions.\n* Maintained exceptional client satisfaction ratings through professional conduct and reliable service delivery.\n* Managed all pre-flight planning, in-flight operations, and post-flight procedures, demonstrating strong leadership.\n\nFirst Officer | American Airlines | Detroit, Michigan | 2016-2017\n* Supported Captain in operating B737 aircraft, contributing to over 200 safe flights.\n* Assisted with navigation, communication, and systems monitoring to ensure flight integrity.\n* Diligently completed pre-flight inspections and post-flight checks.\n\nFlight Instructor | Hillsboro Aero Academy | Portland, Oregon | 2014-2016\n* Provided flight and ground instruction to over 30 student pilots, achieving a 90% pass rate for practical exams.\n* Developed customized training plans to enhance pilot proficiency and safety awareness.\n* Ensured adherence to FAA regulations and curriculum standards.\n\nSkills\nType Rating A320, Line Check Airman, Type Rating B737, Commercial Pilot License, Incident Reporting, Shift Work",
+        "top_k": 5
+      },
+      "relevant_ids": [
+        1
+      ],
+      "rationale": "Smoke check: original resume should retrieve its owner. Not a recruiter quality judgment."
+    },
+    {
+      "id": "note-literal",
+      "kind": "retrieval",
+      "search": {
+        "query": "Moved to pipeline: LAX Q2",
+        "top_k": 5
+      },
+      "relevant_ids": [
+        5
+      ],
+      "rationale": "Smoke check: supplied note should retrieve its owner; other relevant candidates are not exhaustively judged."
+    },
+    {
+      "id": "empty-filter",
+      "kind": "retrieval",
+      "search": {
+        "query": "airport work",
+        "location_city": "NoSuchCityEvalFixture",
+        "top_k": 5
+      },
+      "relevant_ids": [],
+      "rationale": "Deterministic empty-filter plumbing check; not semantic abstention."
+    },
+    {
+      "id": "extraction-explicit",
+      "kind": "extraction",
+      "text": "Alex Example\nBased in Austin, TX. Current role: Pilot. 5 years of relevant work experience.",
+      "expected_fields": {
+        "name": "Alex Example",
+        "location_city": "Austin",
+        "location_region": "Texas",
+        "years_experience": 5
+      },
+      "rationale": "Synthetic explicit-field extraction smoke check."
+    }
+  ]
+}

@@ -7,23 +7,11 @@ from google.genai import types
 
 from app.config import GEMINI_MODEL
 from app.schemas import CandidateFields
-from app.taxonomy import ALL_SKILLS, SKILLS_TAXONOMY, normalize_skills
+from app.taxonomy import SKILLS_TAXONOMY
+from app.normalization import normalize_state
+from app.provider import provider_call
 
 _client: genai.Client | None = None
-
-_STATE_NAMES = {
-    "AL": "Alabama", "AK": "Alaska", "AZ": "Arizona", "AR": "Arkansas", "CA": "California",
-    "CO": "Colorado", "CT": "Connecticut", "DE": "Delaware", "DC": "District of Columbia",
-    "FL": "Florida", "GA": "Georgia", "HI": "Hawaii", "ID": "Idaho", "IL": "Illinois",
-    "IN": "Indiana", "IA": "Iowa", "KS": "Kansas", "KY": "Kentucky", "LA": "Louisiana",
-    "ME": "Maine", "MD": "Maryland", "MA": "Massachusetts", "MI": "Michigan", "MN": "Minnesota",
-    "MS": "Mississippi", "MO": "Missouri", "MT": "Montana", "NE": "Nebraska", "NV": "Nevada",
-    "NH": "New Hampshire", "NJ": "New Jersey", "NM": "New Mexico", "NY": "New York",
-    "NC": "North Carolina", "ND": "North Dakota", "OH": "Ohio", "OK": "Oklahoma", "OR": "Oregon",
-    "PA": "Pennsylvania", "RI": "Rhode Island", "SC": "South Carolina", "SD": "South Dakota",
-    "TN": "Tennessee", "TX": "Texas", "UT": "Utah", "VT": "Vermont", "VA": "Virginia",
-    "WA": "Washington", "WV": "West Virginia", "WI": "Wisconsin", "WY": "Wyoming",
-}
 
 
 def get_client() -> genai.Client:
@@ -65,12 +53,7 @@ SKILLS TAXONOMY:
 """
 
 
-def normalize_state(region: str) -> str:
-    """Expand a postal abbreviation to the full state name; pass other values through."""
-    region = region.strip()
-    return _STATE_NAMES.get(region.upper(), region)
-
-
+@provider_call(f"Resume extraction ({GEMINI_MODEL})")
 def extract_fields(resume: str) -> CandidateFields:
     response = get_client().models.generate_content(
         model=GEMINI_MODEL,
@@ -79,15 +62,10 @@ def extract_fields(resume: str) -> CandidateFields:
             system_instruction=SYSTEM_INSTRUCTION,
             response_mime_type="application/json",
             response_schema=CandidateFields,
-            temperature=0.0,
+            thinking_config=types.ThinkingConfig(thinking_level="minimal"),
         ),
     )
     fields: CandidateFields = response.parsed
     if fields is None:
         fields = CandidateFields.model_validate_json(response.text)
-    fields.skills = normalize_skills(fields.skills)
-    fields.location_region = normalize_state(fields.location_region)
-    fields.location_city = fields.location_city.strip()
-    fields.current_job_title = fields.current_job_title.strip()
-    fields.past_job_titles = [t.strip() for t in fields.past_job_titles if t.strip()]
-    return fields
+    return CandidateFields.model_validate(fields.model_dump() if isinstance(fields, CandidateFields) else fields)
